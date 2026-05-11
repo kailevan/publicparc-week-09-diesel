@@ -157,7 +157,7 @@ if (btn) {
     // boutique-toned waiting state for a beat before the answer arrives.
     btn.classList.add('processing');
     if (cartLabel) cartLabel.textContent = PROCESSING_LABEL;
-    setTimeout(showYieldDialog, 1500);
+    setTimeout(showYieldDialog, 1000);
   });
 
   // —————— DIALOG ——————
