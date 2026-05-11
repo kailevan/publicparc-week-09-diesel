@@ -100,10 +100,14 @@ if (btn) {
       offsetX = targetCenterX - (natural.left + natural.width / 2);
       offsetY = targetCenterY - (natural.top  + natural.height / 2);
     } else if (attempts === 3) {
-      // Tap 4 — back to the original position; Apple Pay slides back in too
+      // Tap 4 — back to the original position. Apple Pay only fades back in
+      // AFTER the button has settled, so the two motions read as cause/effect
+      // instead of stepping on each other.
       offsetX = 0;
       offsetY = 0;
-      if (applePay) applePay.classList.remove('hidden');
+      if (applePay) {
+        setTimeout(() => applePay.classList.remove('hidden'), 800);
+      }
     }
 
     clampToViewport();
