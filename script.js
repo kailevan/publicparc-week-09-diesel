@@ -17,7 +17,7 @@ if (btn) {
   const PROXIMITY_TAP    = 90;    // px — touch this close = trigger a leap
   const ABOVE_OFFSET     = 80;    // px — how far above natural for tap 2
   const PADDING          = 16;    // px — keep button this far from viewport edges
-  const SNAP_BACK_DELAY  = 1500;  // ms — idle time before button slides home
+  const SNAP_BACK_DELAY  = 2000;  // ms — idle time before button slides home
   const LEAP_THROTTLE    = 250;   // ms — minimum time between leaps
   const TOTAL_LEAPS      = 3;     // tap 4 is the yield
 
@@ -145,14 +145,18 @@ if (btn) {
   });
 
   // —————— CLICK (yield = grey-out → dialog) ——————
+  const cartLabel = btn.querySelector('.cart-label');
+  const PROCESSING_LABEL = 'ENQUIRING…';
+
   btn.addEventListener('click', (e) => {
     if (!yielded) {
       e.preventDefault();
       return;
     }
-    // The tap finally registers — button greys out for a beat ("processing")
-    // before the brand's actual answer arrives.
+    // The tap finally registers — button greys out and its label swaps to a
+    // boutique-toned waiting state for a beat before the answer arrives.
     btn.classList.add('processing');
+    if (cartLabel) cartLabel.textContent = PROCESSING_LABEL;
     setTimeout(showYieldDialog, 1500);
   });
 
