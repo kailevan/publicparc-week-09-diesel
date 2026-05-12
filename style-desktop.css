@@ -72,7 +72,7 @@ ul { list-style: none; }
   justify-content: center;
 }
 
-.header-logo-d img { width: 84px; height: 50.3px; }
+.header-logo-d img { width: 84px; height: 48px; }
 
 .header-utility-d {
   position: absolute;
@@ -197,7 +197,7 @@ ul { list-style: none; }
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -5px;
+  bottom: -3px;
   height: 2px;
   background: #000;
 }
