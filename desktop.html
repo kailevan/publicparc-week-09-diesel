@@ -15,24 +15,21 @@
     <!-- ========== HEADER ========== -->
     <header class="header-d">
       <div class="header-bar-d">
-        <button class="header-icon-d header-menu-d" aria-label="Menu">
-          <img src="assets/images/menu-icon.svg" alt="" />
-        </button>
         <div class="header-search-d">
-          <img src="assets/images/search-icon.svg" alt="" />
+          <img class="header-search-icon-d" src="assets/images/search-icon.svg" alt="" />
           <span>Search</span>
         </div>
         <a href="#" class="header-logo-d" aria-label="Hermès">
           <img src="assets/images/hermes-logo.svg" alt="Hermès" />
         </a>
         <div class="header-utility-d">
-          <button class="header-icon-d" aria-label="Account">
+          <button class="header-util-d" aria-label="Account">
             <img src="assets/images/header-account.svg" alt="" />
-            <span class="util-label">Account</span>
+            <span>Account</span>
           </button>
-          <button class="header-icon-d" aria-label="Bag">
+          <button class="header-util-d" aria-label="Bag">
             <img src="assets/images/header-bag.svg" alt="" />
-            <span class="util-label">Bag</span>
+            <span>Bag</span>
           </button>
         </div>
       </div>
@@ -53,7 +50,7 @@
 
     <main class="main-d">
 
-      <!-- ========== HERO: 2 IMAGES + PRODUCT INFO ========== -->
+      <!-- ========== HERO ========== -->
       <section class="hero-d">
         <div class="hero-images-d">
           <div class="hero-image-d">
@@ -95,23 +92,7 @@
         </aside>
       </section>
 
-      <!-- ========== THUMBNAIL VIEWS ========== -->
-      <section class="thumbnails-d" aria-label="Other views">
-        <button class="thumb-d thumb-active-d">
-          <img src="assets/images/IMG_9159.jpg" alt="" />
-        </button>
-        <button class="thumb-d">
-          <img src="assets/images/IMG_9159.jpg" alt="" />
-        </button>
-        <button class="thumb-d">
-          <img src="assets/images/IMG_9159.jpg" alt="" />
-        </button>
-        <button class="thumb-d">
-          <img src="assets/images/IMG_9159.jpg" alt="" />
-        </button>
-      </section>
-
-      <!-- ========== PRODUCT DETAILS (2-col) ========== -->
+      <!-- ========== DETAILS — 2 columns (description + panels) ========== -->
       <section class="details-d">
         <div class="details-text-d">
           <div class="details-description-d">
@@ -198,9 +179,24 @@
 
     </main>
 
-    <!-- ========== FOOTER (4 columns) ========== -->
+    <!-- ========== FOOTER ========== -->
     <footer class="footer-d">
-      <div class="footer-inner-d">
+      <div class="footer-columns-d">
+
+        <section class="footer-col-d footer-service-col-d">
+          <h4 class="footer-heading-d">CUSTOMER SERVICE</h4>
+          <p class="footer-text-d">
+            <span class="muted">WhatsApp France: </span><a href="#">+33 1 40 17 47 00</a><span class="muted">.</span><br>
+            <span class="muted">Monday to Saturday, 9 am to 6:30 pm.</span>
+          </p>
+          <p class="footer-text-d muted">Stores and online orders, Monday to Saturday 10 am - 7 pm:</p>
+          <a class="footer-link-d" href="#">+33 (0)1 40 17 47 00</a>
+
+          <p class="footer-text-d muted">For information requests at the Headquarters, contact our general switchboard Monday to Friday, 8:30 am - 6 pm:</p>
+          <a class="footer-link-d" href="#">+33 (0)1 40 17 47 17</a>
+
+          <a class="footer-link-d footer-email-d" href="#">Send an email</a>
+        </section>
 
         <section class="footer-col-d">
           <h4 class="footer-heading-d">SERVICES</h4>
@@ -252,29 +248,30 @@
             <li>Environmental characteristics</li>
           </ul>
         </section>
-
       </div>
 
-      <div class="footer-bottom-d">
-        <div class="footer-social-d">
-          <span class="footer-social-label-d">FOLLOW US</span>
-          <a href="#"><img src="assets/images/social-1.svg" alt="" /></a>
-          <a href="#"><img src="assets/images/social-2.svg" alt="" /></a>
-          <a href="#"><img src="assets/images/social-3.svg" alt="" /></a>
-        </div>
-
+      <div class="footer-mid-d">
         <div class="footer-newsletter-d">
           <h4 class="footer-heading-d">NEWSLETTER</h4>
-          <p class="footer-newsletter-text-d">Receive our newsletter and discover our stories, our collections and our surprises.</p>
+          <p class="footer-newsletter-text-d">Receive our newsletter and discover our stories, our<br>collections and our surprises.</p>
           <button class="footer-newsletter-btn-d">SUBSCRIBE</button>
         </div>
 
-        <div class="footer-country-d">
-          <button class="footer-country-btn-d">
-            <span>YOUR LOCATION: FRANCE</span>
-            <img src="assets/images/country-arrow.svg" alt="" />
-          </button>
+        <div class="footer-social-d">
+          <h4 class="footer-heading-d">FOLLOW US</h4>
+          <div class="footer-social-icons-d">
+            <a href="#"><img src="assets/images/social-1.svg" alt="" /></a>
+            <a href="#"><img src="assets/images/social-2.svg" alt="" /></a>
+            <a href="#"><img src="assets/images/social-3.svg" alt="" /></a>
+          </div>
         </div>
+      </div>
+
+      <div class="footer-bottom-d">
+        <button class="footer-country-btn-d">
+          <span>YOUR LOCATION: FRANCE</span>
+          <img src="assets/images/country-arrow.svg" alt="" />
+        </button>
 
         <div class="footer-rider-d">
           <img src="assets/images/hermes-rider.svg" alt="Hermès" />
