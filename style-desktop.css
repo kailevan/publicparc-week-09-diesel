@@ -63,8 +63,9 @@ ul { list-style: none; }
 
 .header-logo-d {
   position: absolute;
-  left: 683px;
+  left: 50%;
   top: 0;
+  transform: translateX(-50%);
   width: 84px;
   height: 50px;
   display: flex;
