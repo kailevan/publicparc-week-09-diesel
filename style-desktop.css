@@ -1,0 +1,765 @@
+/* Hermès Birkin 35 — Desktop (1440px) */
+
+:root {
+  --bg-page: #fcf7f1;
+  --bg-card: #fffcf7;
+  --ink: #000000;
+  --muted: #696969;
+  --separator: rgba(246, 241, 235, 0.6);
+  --separator-solid: #f6f1eb;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background: var(--bg-page);
+  font-family: 'Manrope', sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+img { display: block; max-width: 100%; }
+button { background: none; border: none; font-family: inherit; cursor: pointer; color: inherit; padding: 0; }
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; }
+
+.device-d {
+  width: 1440px;
+  margin: 0 auto;
+  background: var(--bg-page);
+  position: relative;
+}
+
+/* ===================== HEADER ===================== */
+.header-d {
+  width: 100%;
+  background: var(--bg-page);
+  border-bottom: 1px solid var(--separator-solid);
+}
+
+.header-bar-d {
+  width: 100%;
+  height: 50px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+}
+
+.header-icon-d {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-icon-d img { width: 20px; height: 20px; }
+
+.header-menu-d { flex-shrink: 0; }
+
+.header-search-d {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.header-search-d img { width: 16px; height: 16px; }
+
+.header-logo-d {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  transform: translateX(-50%);
+  width: 90px;
+  height: 42px;
+  display: block;
+}
+
+.header-logo-d img { width: 90px; height: 42px; }
+
+.header-utility-d {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-left: auto;
+}
+
+.header-utility-d .header-icon-d {
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.util-label {
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px;
+  color: var(--ink);
+}
+
+.menu-bar-d {
+  width: 100%;
+  height: 46px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  font-family: 'Overpass Mono', monospace;
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.menu-bar-d a {
+  color: var(--ink);
+  padding: 14px 0;
+}
+
+.menu-bar-d a:hover { text-decoration: underline; }
+
+/* ===================== HERO ===================== */
+.hero-d {
+  width: 1258px;
+  margin: 0 auto;
+  padding: 24px 0;
+  display: grid;
+  grid-template-columns: 1fr 314px;
+  gap: 16px;
+  align-items: start;
+}
+
+.hero-images-d {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.hero-image-d {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.hero-image-d img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-info-d {
+  background: var(--bg-card);
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 16px;
+}
+
+.product-title-d {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 28px;
+  color: var(--ink);
+}
+
+.product-price-d {
+  font-family: 'Manrope', sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--ink);
+}
+
+.variant-group-d { display: flex; flex-direction: column; gap: 12px; }
+
+.variant-header-d {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.variant-label-d { color: var(--muted); }
+.variant-value-d { color: var(--ink); }
+
+.variant-swatches-d {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.swatch-d {
+  background: var(--bg-card);
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.swatch-d img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.swatch-active-d::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  border-bottom: 1px solid #000;
+  height: 0;
+}
+
+.actions-d {
+  display: flex;
+  align-items: stretch;
+  margin-top: 8px;
+}
+
+.apple-pay-btn-d {
+  flex: 0 0 96px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border-top: 1px solid #000;
+  border-left: 1px solid #000;
+  border-bottom: 1px solid #000;
+  border-right: 1px solid #000;
+  border-radius: 2px 0 0 2px;
+}
+
+.apple-pay-btn-d img { width: 44px; height: 20px; }
+
+.add-to-cart-wrapper-d {
+  position: relative;
+  flex: 1;
+  height: 48px;
+}
+
+.cart-slot-d {
+  position: absolute;
+  inset: 0;
+  border-top: 1px solid #000;
+  border-right: 1px solid #000;
+  border-bottom: 1px solid #000;
+  border-radius: 0 2px 2px 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.add-to-cart-btn-d {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #000;
+  border-radius: 0 2px 2px 0;
+  z-index: 1;
+  transition:
+    transform 800ms cubic-bezier(0.22, 1, 0.36, 1),
+    background 400ms ease-out;
+  will-change: transform;
+}
+
+.cart-icon-d { width: 16px; height: 16px; }
+
+.cart-label-d {
+  font-family: 'Overpass Mono', monospace;
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.add-to-cart-btn-d.processing {
+  background: #b8b8b8;
+  pointer-events: none;
+}
+
+.add-to-cart-btn-d.processing .cart-icon-d,
+.add-to-cart-btn-d.processing .cart-label-d {
+  opacity: 0.7;
+  transition: opacity 400ms ease-out;
+}
+
+/* ===================== THUMBNAILS ===================== */
+.thumbnails-d {
+  width: 1258px;
+  margin: 0 auto;
+  padding: 16px 0 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.thumb-d {
+  background: var(--bg-card);
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+}
+
+.thumb-d img { width: 100%; height: 100%; object-fit: cover; }
+
+.thumb-active-d::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  bottom: -2px;
+  border-bottom: 1px solid #000;
+  height: 0;
+}
+
+/* ===================== DETAILS (2-col) ===================== */
+.details-d {
+  width: 1258px;
+  margin: 0 auto;
+  padding: 48px 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  background: var(--bg-card);
+  padding: 48px 80px;
+  width: 1258px;
+}
+
+.details-text-d {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.details-description-d p {
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--ink);
+}
+
+.details-description-d p + p { margin-top: 20px; }
+
+.details-line-d {
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--ink);
+}
+
+.details-footer-d {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.details-footer-d .ref-d,
+.details-footer-d .env-d,
+.details-footer-d .contact-d {
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--muted);
+}
+
+.details-footer-d a {
+  text-decoration: underline;
+  color: var(--muted);
+}
+
+.details-panels-d {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.panel-d {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--separator);
+  background: transparent;
+}
+
+.panel-label-d {
+  font-family: 'Overpass Mono', monospace;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.panel-icon-d { width: 14px; height: 14px; }
+
+/* ===================== STORY ===================== */
+.story-d {
+  width: 1258px;
+  margin: 64px auto 0;
+  padding: 48px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.story-title-d {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 48px;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.story-body-d {
+  font-family: 'Manrope', sans-serif;
+  font-size: 16px;
+  line-height: 28px;
+  color: var(--ink);
+  padding-top: 16px;
+  max-width: 720px;
+}
+
+.story-link-d {
+  display: inline-block;
+  margin-top: 16px;
+  font-family: 'Overpass Mono', monospace;
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 2px;
+}
+
+.story-video-d {
+  margin-top: 40px;
+  width: 1035px;
+  position: relative;
+  background: var(--bg-card);
+}
+
+.video-thumb-d {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  object-fit: cover;
+  display: block;
+}
+
+.video-controls-d {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 36px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+}
+
+.video-btn-d {
+  width: 44px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-btn-d img { width: 40px; height: 30px; }
+
+.video-progress-d {
+  flex: 1;
+  height: 3px;
+  background: var(--muted);
+  margin: 0 12px;
+  position: relative;
+}
+
+.video-progress-fill-d {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 27%;
+  background: #000;
+}
+
+.video-time-d {
+  font-family: 'Arial', sans-serif;
+  font-size: 11px;
+  line-height: 36px;
+  color: var(--ink);
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+/* ===================== CROSS-SELL ===================== */
+.cross-sell-d {
+  width: 1258px;
+  margin: 0 auto;
+  padding: 64px 0 96px;
+}
+
+.cross-sell-title-d {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 36px;
+  color: var(--ink);
+  margin-bottom: 24px;
+}
+
+.cross-sell-item-d {
+  display: inline-block;
+  width: 280px;
+}
+
+.cross-sell-image-d {
+  background: var(--bg-card);
+  width: 280px;
+  height: 280px;
+  overflow: hidden;
+}
+
+.cross-sell-image-d img { width: 100%; height: 100%; object-fit: cover; }
+
+.cross-sell-name-d {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  padding-top: 12px;
+  color: var(--ink);
+}
+
+.cross-sell-price-d {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--muted);
+}
+
+/* ===================== BREADCRUMB ===================== */
+.breadcrumb-d {
+  width: 1258px;
+  margin: 0 auto;
+  padding: 24px 0 48px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-family: 'Overpass Mono', monospace;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.crumb-link-d { text-decoration: underline; }
+
+/* ===================== FOOTER ===================== */
+.footer-d {
+  background: #fff;
+  border-top: 1px solid var(--separator-solid);
+  padding: 56px 0 24px;
+}
+
+.footer-inner-d {
+  width: 1258px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 48px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid var(--separator-solid);
+}
+
+.footer-col-d {}
+
+.footer-heading-d {
+  font-family: 'Overpass Mono', monospace;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 22px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+
+.footer-list-d li {
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--muted);
+  padding: 8px 0;
+}
+
+.footer-bottom-d {
+  width: 1258px;
+  margin: 0 auto;
+  padding-top: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.footer-social-d {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.footer-social-label-d {
+  font-family: 'Overpass Mono', monospace;
+  font-weight: 300;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.footer-social-d a img { width: 24px; height: 24px; }
+
+.footer-newsletter-d {
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 0;
+}
+
+.footer-newsletter-text-d {
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--ink);
+}
+
+.footer-newsletter-btn-d {
+  width: 240px;
+  min-height: 40px;
+  padding: 12px 17px;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  font-family: 'Overpass Mono', monospace;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  background: transparent;
+}
+
+.footer-country-d {}
+
+.footer-country-btn-d {
+  position: relative;
+  height: 22px;
+  padding-right: 16px;
+  font-family: 'Overpass Mono', monospace;
+  font-weight: 300;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-country-btn-d img {
+  width: 7px;
+  height: 10px;
+}
+
+.footer-rider-d img { width: 90px; height: 51.5px; }
+
+.footer-copyright-d {
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--ink);
+  text-align: center;
+}
+
+/* ===================== DIALOG ===================== */
+.dialog-d {
+  position: fixed;
+  inset: 0;
+  background: rgba(252, 247, 241, 0.96);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 500ms ease-out;
+}
+
+.dialog-d.open { opacity: 1; pointer-events: auto; }
+.dialog-d[hidden] { display: none; }
+
+.dialog-card-d {
+  width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 48px 32px;
+  text-align: center;
+}
+
+.dialog-logo-d { width: 120px; height: 72px; }
+
+.dialog-message-d {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 28px;
+  line-height: 38px;
+  color: var(--ink);
+}
+
+.dialog-close-d {
+  font-family: 'Overpass Mono', monospace;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  padding: 14px 36px;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: transparent;
+}
