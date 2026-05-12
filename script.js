@@ -1,0 +1,190 @@
+// Diesel D-DENVER-CL — Add to Cart Evade (desktop, click-driven)
+//
+// Choreographed mechanic (same as the Hermès desktop reference):
+//   Click 1–3 → button leaps to a random crazy position in the viewport.
+//               Each leap is at least 25% of viewport height away from
+//               the previous spot so consecutive jumps never feel timid.
+//   Click 4   → button returns to its original position (the trap).
+//   Click 5   → the click finally registers; button greys out briefly
+//               with a Diesel-voiced label swap, then the dialog fades in.
+//   2s idle   → button slides home, sequence resets.
+
+const btn = document.getElementById('add-to-cart-d');
+const dialog = document.getElementById('yield-dialog-d');
+const dialogClose = document.querySelector('.dialog-close-d');
+
+if (btn) {
+  const PROXIMITY_TAP        = 110;
+  const PADDING              = 24;
+  const SNAP_BACK_DELAY      = 2000;
+  const LEAP_THROTTLE        = 250;
+  const TOTAL_LEAPS          = 4;
+  const MIN_LEAP_DIST_RATIO  = 0.25;
+  const REROLL_TRIES         = 6;
+
+  const X_MIN = 0.08, X_MAX = 0.85;
+  const Y_MIN = 0.10, Y_MAX = 0.65;
+
+  let offsetX = 0;
+  let offsetY = 0;
+  let attempts = 0;
+  let yielded = false;
+  let snapBackTimer = null;
+  let lastLeapAt = 0;
+
+  let natural = { left: 0, top: 0, width: 0, height: 0 };
+
+  function captureNatural() {
+    const r = btn.getBoundingClientRect();
+    natural = {
+      left: r.left - offsetX,
+      top:  r.top  - offsetY,
+      width: r.width,
+      height: r.height,
+    };
+  }
+
+  function currentCenter() {
+    return {
+      x: natural.left + offsetX + natural.width / 2,
+      y: natural.top  + offsetY + natural.height / 2,
+    };
+  }
+
+  function distance(x1, y1, x2, y2) { return Math.hypot(x1 - x2, y1 - y2); }
+
+  function clampToViewport() {
+    const minOX_raw = PADDING - natural.left;
+    const maxOX_raw = window.innerWidth  - natural.width  - PADDING - natural.left;
+    const minOY_raw = PADDING - natural.top;
+    const maxOY_raw = window.innerHeight - natural.height - PADDING - natural.top;
+
+    const minOX = Math.min(0, minOX_raw);
+    const maxOX = Math.max(0, maxOX_raw);
+    const minOY = Math.min(0, minOY_raw);
+    const maxOY = Math.max(0, maxOY_raw);
+
+    offsetX = Math.max(minOX, Math.min(maxOX, offsetX));
+    offsetY = Math.max(minOY, Math.min(maxOY, offsetY));
+  }
+
+  function randomTarget() {
+    const xRatio = X_MIN + Math.random() * (X_MAX - X_MIN);
+    const yRatio = Y_MIN + Math.random() * (Y_MAX - Y_MIN);
+    return { x: xRatio * window.innerWidth, y: yRatio * window.innerHeight };
+  }
+
+  function pickFarTarget() {
+    const c = currentCenter();
+    const minDist = window.innerHeight * MIN_LEAP_DIST_RATIO;
+    let target = randomTarget();
+    for (let i = 0; i < REROLL_TRIES; i++) {
+      if (distance(target.x, target.y, c.x, c.y) >= minDist) break;
+      target = randomTarget();
+    }
+    return target;
+  }
+
+  function leap() {
+    if (yielded) return;
+    const now = Date.now();
+    if (now - lastLeapAt < LEAP_THROTTLE) return;
+    lastLeapAt = now;
+    if (attempts >= TOTAL_LEAPS) return;
+
+    if (attempts < TOTAL_LEAPS - 1) {
+      const target = pickFarTarget();
+      offsetX = target.x - (natural.left + natural.width  / 2);
+      offsetY = target.y - (natural.top  + natural.height / 2);
+    } else {
+      offsetX = 0;
+      offsetY = 0;
+    }
+
+    clampToViewport();
+    btn.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+
+    attempts++;
+    armSnapBack();
+
+    if (attempts >= TOTAL_LEAPS) {
+      yielded = true;
+      btn.classList.add('yielded');
+    }
+  }
+
+  function armSnapBack() {
+    clearTimeout(snapBackTimer);
+    snapBackTimer = setTimeout(snapBack, SNAP_BACK_DELAY);
+  }
+
+  function snapBack() {
+    if (yielded) return;
+    offsetX = 0;
+    offsetY = 0;
+    attempts = 0;
+    btn.style.transform = 'translate(0, 0)';
+  }
+
+  // —————— CLICK ——————
+  document.addEventListener('mousedown', (e) => {
+    if (yielded) return;
+    const c = currentCenter();
+    if (distance(e.clientX, e.clientY, c.x, c.y) < PROXIMITY_TAP) {
+      e.preventDefault();
+      leap();
+    }
+  });
+
+  // —————— YIELD CLICK → grey + dialog ——————
+  const cartLabel = btn.querySelector('.cart-label-d');
+  const PROCESSING_LABEL = 'TRYING…';
+
+  btn.addEventListener('click', (e) => {
+    if (!yielded) {
+      e.preventDefault();
+      return;
+    }
+    btn.classList.add('processing');
+    if (cartLabel) cartLabel.textContent = PROCESSING_LABEL;
+    setTimeout(showYieldDialog, 500);
+  });
+
+  function showYieldDialog() {
+    if (!dialog) return;
+    dialog.removeAttribute('hidden');
+    requestAnimationFrame(() => dialog.classList.add('open'));
+  }
+
+  function hideYieldDialog() {
+    if (!dialog) return;
+    dialog.classList.remove('open');
+    setTimeout(() => dialog.setAttribute('hidden', ''), 400);
+  }
+
+  if (dialogClose) dialogClose.addEventListener('click', hideYieldDialog);
+
+  // —————— INIT + RESIZE ——————
+  window.addEventListener('load', captureNatural);
+  if (document.readyState === 'complete') captureNatural();
+
+  let resizeTimer;
+  function handleResize() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const savedOX = offsetX, savedOY = offsetY;
+      btn.style.transition = 'none';
+      btn.style.transform = 'translate(0, 0)';
+      requestAnimationFrame(() => {
+        captureNatural();
+        offsetX = savedOX;
+        offsetY = savedOY;
+        clampToViewport();
+        btn.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+        requestAnimationFrame(() => { btn.style.transition = ''; });
+      });
+    }, 100);
+  }
+
+  window.addEventListener('resize', handleResize);
+}
