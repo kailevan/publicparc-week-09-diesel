@@ -43,8 +43,8 @@ if (captureMode) {
 
   // ===== tuning =====
   const AWARENESS_RADIUS = 380;   // cursor inside this radius from current button center triggers continuous evade
-  const MAX_PX_PER_FRAME = 30;    // max displacement per RAF tick (when intensity = 1, ie cursor on the button)
-  const REPEL_EXPONENT   = 2.4;   // nonlinear falloff: real magnets respond sharply close-up and weakly far away
+  const MAX_PX_PER_FRAME = 48;    // max displacement per RAF tick (when intensity = 1, ie cursor on the button)
+  const REPEL_EXPONENT   = 1.8;   // nonlinear falloff: real magnets respond sharply close-up and weakly far away
   const PADDING          = 28;    // viewport padding when clamping the button position
 
   // ===== state =====
