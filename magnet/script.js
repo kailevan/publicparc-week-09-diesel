@@ -1,3 +1,28 @@
+// Capture-mode hook: open the page with `?capture=1` to hide the OS
+// cursor and inject a synthetic black-with-white-outline SVG cursor
+// that follows mousemove (headless Chrome doesn't render an OS cursor
+// in screencasts, so we render our own).
+const captureMode = /[?&]capture(=1)?(?:&|$)/.test(location.search);
+if (captureMode) {
+  const style = document.createElement('style');
+  style.textContent = '*, *::before, *::after { cursor: none !important; }';
+  document.head.appendChild(style);
+  const cursor = document.createElement('div');
+  cursor.id = '__capture_cursor';
+  cursor.innerHTML = `
+    <svg width="20" height="24" viewBox="0 0 20 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 2 L2 18 L7 14 L9.5 22 L13 20.5 L10.5 13 L17 13 Z"
+            fill="#000" stroke="#fff" stroke-width="1.4" stroke-linejoin="round" />
+    </svg>`;
+  cursor.style.cssText =
+    'position:fixed;left:0;top:0;width:20px;height:24px;pointer-events:none;' +
+    'z-index:999999;will-change:transform;transform:translate(-50px,-50px);';
+  document.body.appendChild(cursor);
+  window.addEventListener('mousemove', (e) => {
+    cursor.style.transform = `translate(${e.clientX - 1}px, ${e.clientY - 1}px)`;
+  }, { passive: true });
+}
+
 // magnet/script.js — "fish in a tank" continuous-response evade variant.
 //
 // The Add to bag button has always-on awareness of the cursor within a
