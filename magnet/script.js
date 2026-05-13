@@ -43,7 +43,8 @@ if (captureMode) {
 
   // ===== tuning =====
   const AWARENESS_RADIUS = 380;   // cursor inside this radius from current button center triggers continuous evade
-  const MAX_PX_PER_FRAME = 22;    // max displacement per RAF tick (when intensity = 1, ie cursor on the button)
+  const MAX_PX_PER_FRAME = 30;    // max displacement per RAF tick (when intensity = 1, ie cursor on the button)
+  const REPEL_EXPONENT   = 2.4;   // nonlinear falloff: real magnets respond sharply close-up and weakly far away
   const PADDING          = 28;    // viewport padding when clamping the button position
 
   // ===== state =====
@@ -95,9 +96,12 @@ if (captureMode) {
     const dist = Math.hypot(dx, dy);
 
     if (dist < AWARENESS_RADIUS) {
-      // Linear scaling: cursor at edge of zone → ~0 push; cursor right
-      // on the button → MAX_PX_PER_FRAME push (per RAF tick).
-      const intensity = 1 - (dist / AWARENESS_RADIUS);
+      // Nonlinear falloff (inverse-square-ish): real opposing magnets
+      // ignore each other at distance and shove violently close-up.
+      // Pow > 1 makes the response curve hug the X-axis until the
+      // cursor is well inside the zone, then snap upward.
+      const linear = 1 - (dist / AWARENESS_RADIUS);
+      const intensity = Math.pow(linear, REPEL_EXPONENT);
       const unitX = dx / Math.max(dist, 1);
       const unitY = dy / Math.max(dist, 1);
       pos.x += unitX * intensity * MAX_PX_PER_FRAME;

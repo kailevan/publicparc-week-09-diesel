@@ -37,8 +37,8 @@ if (captureMode) {
   if (!btn) return;
 
   // ===== tuning =====
-  const AWARENESS_RADIUS = 250;   // cursor inside this radius starts the fade
-  const FADED_OPACITY    = 0.15;  // opacity when cursor is right on the button (linear in/out)
+  const AWARENESS_RADIUS = 380;   // cursor inside this radius starts the fade — starts vanishing from further away
+  const FADED_OPACITY    = 0;     // fully invisible when cursor is right on top of the button
   const SMOOTH           = 0.18;  // per-frame lerp toward target opacity (higher = snappier)
 
   // ===== state =====
