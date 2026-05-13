@@ -4,13 +4,10 @@
 // more transparent the button becomes (down to ~15% opacity at full
 // proximity — visible enough to know it's there, faint enough to feel
 // "not really there"). Cursor moves away → button returns to 100%.
-// Clicks are blocked while the button is fading; you can't click what
-// you can barely see.
 //
-// After ~3s from the first proximity, the button gets tired and
-// "yields": stays fully visible regardless of cursor position, becomes
-// clickable, opens the same TRYING → Draw a D captcha → SOLD OUT
-// flow as the leap and magnet variants.
+// Permanently unbuyable: the button never yields. You can't click what
+// you can barely see, and the fade is forever. Visit the leap
+// prototype for the full TRYING → captcha → SOLD OUT flow.
 
 // Capture-mode hook (same as other variants): hide OS cursor, inject
 // synthetic SVG cursor for the recording.
@@ -42,27 +39,14 @@ if (captureMode) {
   // ===== tuning =====
   const AWARENESS_RADIUS = 250;   // cursor inside this radius starts the fade
   const FADED_OPACITY    = 0.15;  // opacity when cursor is right on the button (linear in/out)
-  const FATIGUE_MS       = 3000;  // ms from first proximity before the button yields
-  const HOME_GLIDE_MS    = 400;   // smooth opacity-restore animation on yield
   const SMOOTH           = 0.18;  // per-frame lerp toward target opacity (higher = snappier)
 
   // ===== state =====
   let cursor = { x: -1e6, y: -1e6 };
-  let yielded = false;
-  let firstProximity = false;
-  let fatigueStartedAt = 0;
   let currentOpacity = 1;
   let rafId = null;
 
   function tick() {
-    if (yielded) { rafId = null; return; }
-
-    // Fatigue first — last frame should yield before further reactions.
-    if (firstProximity && Date.now() - fatigueStartedAt >= FATIGUE_MS) {
-      yieldNow();
-      return;
-    }
-
     const r = btn.getBoundingClientRect();
     const cx = r.left + r.width  / 2;
     const cy = r.top  + r.height / 2;
@@ -72,10 +56,6 @@ if (captureMode) {
 
     let targetOpacity = 1;
     if (dist < AWARENESS_RADIUS) {
-      if (!firstProximity) {
-        firstProximity = true;
-        fatigueStartedAt = Date.now();
-      }
       const proximity = 1 - (dist / AWARENESS_RADIUS);
       targetOpacity = 1 - (1 - FADED_OPACITY) * proximity;
     }
@@ -87,48 +67,22 @@ if (captureMode) {
     rafId = requestAnimationFrame(tick);
   }
 
-  function yieldNow() {
-    yielded = true;
-    btn.classList.add('yielded');
-    // CSS transition smooths the restore back to fully visible.
-    btn.style.transition = `opacity ${HOME_GLIDE_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`;
-    btn.style.opacity    = 1;
-    currentOpacity = 1;
-    if (rafId) cancelAnimationFrame(rafId);
-    rafId = null;
-  }
-
   function startTickIfNeeded() {
-    if (rafId == null && !yielded) {
+    if (rafId == null) {
       rafId = requestAnimationFrame(tick);
     }
   }
 
   document.addEventListener('mousemove', (e) => {
-    if (yielded) return;
     cursor.x = e.clientX;
     cursor.y = e.clientY;
     startTickIfNeeded();
   });
 
-  // Block clicks on the button while it's still fading — you can't
-  // click what you can barely see, narratively speaking.
-  btn.addEventListener('mousedown', (e) => {
-    if (!yielded) e.preventDefault();
-  });
-  btn.addEventListener('click', (e) => {
-    if (!yielded) { e.preventDefault(); return; }
-    triggerProcessing();
-  });
-
-  let processed = false;
-  function triggerProcessing() {
-    if (processed) return;
-    processed = true;
-    btn.classList.add('processing');
-    btn.textContent = 'TRYING…';
-    setTimeout(showTraceZone, 500);
-  }
+  // Permanently unclickable in the vanish variant — swallow mousedown
+  // + click so nothing fires by accident.
+  btn.addEventListener('mousedown', (e) => e.preventDefault());
+  btn.addEventListener('click',     (e) => e.preventDefault());
 })();
 
 // ====== INLINE TRACE ZONE (Draw-a-D captcha) ======

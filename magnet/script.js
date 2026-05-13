@@ -26,17 +26,16 @@ if (captureMode) {
 // magnet/script.js — "fish in a tank" continuous-response evade variant.
 //
 // The Add to bag button has always-on awareness of the cursor within a
-// 200px radius. Every animation frame it drifts a little further away
+// 380px radius. Every animation frame it drifts a little further away
 // from the cursor; how big the drift is scales linearly with how far
 // inside the awareness zone the cursor sits (cursor at the edge =
 // barely any push; cursor on top of the button = max push per frame).
-// Cursor speed itself doesn't matter — only distance. The button
-// keeps wherever it ends up (no spring back to home while evading).
+// Cursor speed itself doesn't matter — only distance. The button keeps
+// wherever it ends up (no spring back to home while evading).
 //
-// After ~6 seconds from the first time the cursor entered the
-// awareness zone, the button gets tired: it glides smoothly home,
-// becomes clickable, and the next click opens the same TRYING →
-// Draw a D captcha → SOLD OUT flow as the parent prototype.
+// Permanently unbuyable: the button never yields. The whole point of
+// this concept is the evade — you can't ever click it. Visit the leap
+// prototype for the full TRYING → captcha → SOLD OUT flow.
 
 (function () {
   const btn = document.getElementById('add-to-cart');
@@ -45,8 +44,6 @@ if (captureMode) {
   // ===== tuning =====
   const AWARENESS_RADIUS = 380;   // cursor inside this radius from current button center triggers continuous evade
   const MAX_PX_PER_FRAME = 22;    // max displacement per RAF tick (when intensity = 1, ie cursor on the button)
-  const FATIGUE_MS       = 3000;  // ms from first proximity before the button yields and glides home
-  const HOME_GLIDE_MS    = 720;   // duration of the yield-time return-home animation
   const PADDING          = 28;    // viewport padding when clamping the button position
 
   // ===== state =====
@@ -57,9 +54,6 @@ if (captureMode) {
   let pos      = null;            // current button center in viewport coords
   let natural  = null;            // rect captured on first lift (home position)
   let lifted   = false;
-  let yielded  = false;
-  let firstProximity = false;     // becomes true the first time cursor enters the awareness zone
-  let fatigueStartedAt = 0;
   let rafId    = null;
 
   function lift() {
@@ -93,37 +87,14 @@ if (captureMode) {
     btn.style.transform = `translate(${pos.x - nc.x}px, ${pos.y - nc.y}px)`;
   }
 
-  function yieldNow() {
-    yielded = true;
-    btn.classList.add('yielded');
-    btn.style.transition = `transform ${HOME_GLIDE_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`;
-    btn.style.transform  = 'translate(0, 0)';
-    // After the glide, pos reflects home (so any late ticks see it
-    // already at the natural center).
-    setTimeout(() => { pos = naturalCenter(); }, HOME_GLIDE_MS);
-    if (rafId) cancelAnimationFrame(rafId);
-    rafId = null;
-  }
-
   function tick() {
-    if (yielded || !pos) { rafId = null; return; }
-
-    // Fatigue check first so the very last tick can yield before
-    // dispatching another push.
-    if (firstProximity && Date.now() - fatigueStartedAt >= FATIGUE_MS) {
-      yieldNow();
-      return;
-    }
+    if (!pos) { rafId = null; return; }
 
     const dx = pos.x - cursor.x;
     const dy = pos.y - cursor.y;
     const dist = Math.hypot(dx, dy);
 
     if (dist < AWARENESS_RADIUS) {
-      if (!firstProximity) {
-        firstProximity = true;
-        fatigueStartedAt = Date.now();
-      }
       // Linear scaling: cursor at edge of zone → ~0 push; cursor right
       // on the button → MAX_PX_PER_FRAME push (per RAF tick).
       const intensity = 1 - (dist / AWARENESS_RADIUS);
@@ -140,29 +111,22 @@ if (captureMode) {
   }
 
   function startTickIfNeeded() {
-    if (rafId == null && !yielded) {
+    if (rafId == null) {
       rafId = requestAnimationFrame(tick);
     }
   }
 
   document.addEventListener('mousemove', (e) => {
-    if (yielded) return;
     if (!lifted) lift();
     cursor.x = e.clientX;
     cursor.y = e.clientY;
     startTickIfNeeded();
   });
 
-  // Block clicks on the button while evading so a cursor that briefly
-  // overlaps the button (before the next RAF tick moves it away)
-  // doesn't accidentally fire triggerProcessing.
-  btn.addEventListener('mousedown', (e) => {
-    if (!yielded) e.preventDefault();
-  });
-  btn.addEventListener('click', (e) => {
-    if (!yielded) { e.preventDefault(); return; }
-    triggerProcessing();
-  });
+  // The button is permanently unclickable in the magnet variant —
+  // swallow mousedown + click so nothing fires by accident.
+  btn.addEventListener('mousedown', (e) => e.preventDefault());
+  btn.addEventListener('click',     (e) => e.preventDefault());
 
   // Resize: re-grab natural rect on next animation frame so the
   // awareness zone stays aligned with the new layout.
@@ -170,7 +134,7 @@ if (captureMode) {
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      if (!lifted || yielded) return;
+      if (!lifted) return;
       btn.style.transition = 'none';
       btn.style.transform  = 'translate(0, 0)';
       btn.style.position = '';
@@ -186,15 +150,6 @@ if (captureMode) {
       });
     }, 120);
   });
-
-  let processed = false;
-  function triggerProcessing() {
-    if (processed) return;
-    processed = true;
-    btn.classList.add('processing');
-    btn.textContent = 'TRYING…';
-    setTimeout(showTraceZone, 500);
-  }
 })();
 
 // ====== INLINE TRACE ZONE (Draw-a-D captcha) ======
