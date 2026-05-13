@@ -1,7 +1,12 @@
-// Capture-mode hook: open the page with `?capture=1` to hide the OS
-// cursor and inject a synthetic black-with-white-outline SVG cursor
-// that follows mousemove (headless Chrome doesn't render an OS cursor
-// in screencasts, so we render our own).
+// captcha/script.js — pure draw-a-D-to-add-to-cart variant.
+//
+// No leap, no magnet, no fade. Click the button → it greys to TRYING…
+// → the trace zone opens with a dashed D template → user drags a D →
+// SOLD OUT. The whole concept is: the click works, but the cart asks
+// you to prove you're human first, and by the time you finish, the
+// drop is gone.
+
+// Capture-mode hook (same as other variants).
 const captureMode = /[?&]capture(=1)?(?:&|$)/.test(location.search);
 if (captureMode) {
   const style = document.createElement('style');
@@ -23,155 +28,19 @@ if (captureMode) {
   }, { passive: true });
 }
 
-// magnet/script.js — "fish in a tank" continuous-response evade variant.
-//
-// The Add to bag button has always-on awareness of the cursor within a
-// 380px radius. Every animation frame it drifts a little further away
-// from the cursor; how big the drift is scales linearly with how far
-// inside the awareness zone the cursor sits (cursor at the edge =
-// barely any push; cursor on top of the button = max push per frame).
-// Cursor speed itself doesn't matter — only distance. The button keeps
-// wherever it ends up (no spring back to home while evading).
-//
-// Permanently unbuyable: the button never yields. The whole point of
-// this concept is the evade — you can't ever click it. Visit the leap
-// prototype for the full TRYING → captcha → SOLD OUT flow.
-
-(function () {
-  const btn = document.getElementById('add-to-cart');
-  if (!btn) return;
-
-  // ===== tuning =====
-  const AWARENESS_RADIUS = 420;   // cursor inside this radius from current button center triggers continuous evade
-  const MAX_PX_PER_FRAME = 64;    // max displacement per RAF tick (when intensity = 1, ie cursor on the button)
-  const REPEL_EXPONENT   = 1.5;   // nonlinear falloff: real magnets respond sharply close-up and weakly far away
-  const PADDING          = 28;    // viewport padding when clamping the button position
-
-  // ===== state =====
-  // Cursor parked far off-screen so the page-load mousemove (if any)
-  // doesn't accidentally count as proximity before the user actually
-  // moves.
-  let cursor   = { x: -1e6, y: -1e6 };
-  let pos      = null;            // current button center in viewport coords
-  let natural  = null;            // rect captured on first lift (home position)
-  let lifted   = false;
-  let rafId    = null;
-
-  function lift() {
-    if (lifted) return;
-    const r = btn.getBoundingClientRect();
-    natural = { left: r.left, top: r.top, width: r.width, height: r.height };
-    // Reparent to <body> so the button escapes the stacking context
-    // created by .product-card (z-index: 5). Without this the lifted
-    // button is "topmost within the card's context" but the card
-    // itself sits below the .site-header (z-index: 30), so the
-    // button visibly slides under the top nav as it travels around.
-    // Attached to body, the button shares the root stacking context
-    // and its z-index actually means what it says.
-    document.body.appendChild(btn);
-    btn.style.position = 'fixed';
-    btn.style.left   = r.left   + 'px';
-    btn.style.top    = r.top    + 'px';
-    btn.style.width  = r.width  + 'px';
-    btn.style.height = r.height + 'px';
-    btn.style.margin = '0';
-    btn.style.willChange = 'transform';
-    // One below the synthetic capture cursor (z-index 999999) so the
-    // cursor still renders on top of the button in screen recordings.
-    btn.style.zIndex = '999998';
-    pos = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-    lifted = true;
-  }
-
-  function naturalCenter() {
-    return { x: natural.left + natural.width / 2, y: natural.top + natural.height / 2 };
-  }
-
-  function clampPosition() {
-    const halfW = natural.width  / 2;
-    const halfH = natural.height / 2;
-    pos.x = Math.max(PADDING + halfW, Math.min(window.innerWidth  - PADDING - halfW, pos.x));
-    pos.y = Math.max(PADDING + halfH, Math.min(window.innerHeight - PADDING - halfH, pos.y));
-  }
-
-  function applyTransform() {
-    const nc = naturalCenter();
-    btn.style.transform = `translate(${pos.x - nc.x}px, ${pos.y - nc.y}px)`;
-  }
-
-  function tick() {
-    if (!pos) { rafId = null; return; }
-
-    const dx = pos.x - cursor.x;
-    const dy = pos.y - cursor.y;
-    const dist = Math.hypot(dx, dy);
-
-    if (dist < AWARENESS_RADIUS) {
-      // Nonlinear falloff (inverse-square-ish): real opposing magnets
-      // ignore each other at distance and shove violently close-up.
-      // Pow > 1 makes the response curve hug the X-axis until the
-      // cursor is well inside the zone, then snap upward.
-      const linear = 1 - (dist / AWARENESS_RADIUS);
-      const intensity = Math.pow(linear, REPEL_EXPONENT);
-      const unitX = dx / Math.max(dist, 1);
-      const unitY = dy / Math.max(dist, 1);
-      pos.x += unitX * intensity * MAX_PX_PER_FRAME;
-      pos.y += unitY * intensity * MAX_PX_PER_FRAME;
-      clampPosition();
-      applyTransform();
-    }
-    // else: button stays where it last was — no transform write.
-
-    rafId = requestAnimationFrame(tick);
-  }
-
-  function startTickIfNeeded() {
-    if (rafId == null) {
-      rafId = requestAnimationFrame(tick);
-    }
-  }
-
-  document.addEventListener('mousemove', (e) => {
-    if (!lifted) lift();
-    cursor.x = e.clientX;
-    cursor.y = e.clientY;
-    startTickIfNeeded();
+const btn = document.getElementById('add-to-cart');
+if (btn) {
+  let processed = false;
+  btn.addEventListener('click', () => {
+    if (processed) return;
+    processed = true;
+    btn.classList.add('processing');
+    btn.textContent = 'TRYING…';
+    setTimeout(showTraceZone, 500);
   });
-
-  // The button is permanently unclickable in the magnet variant —
-  // swallow mousedown + click so nothing fires by accident.
-  btn.addEventListener('mousedown', (e) => e.preventDefault());
-  btn.addEventListener('click',     (e) => e.preventDefault());
-
-  // Resize: re-grab natural rect on next animation frame so the
-  // awareness zone stays aligned with the new layout.
-  let resizeTimer;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      if (!lifted) return;
-      btn.style.transition = 'none';
-      btn.style.transform  = 'translate(0, 0)';
-      btn.style.position = '';
-      btn.style.left = '';
-      btn.style.top = '';
-      btn.style.width = '';
-      btn.style.height = '';
-      btn.style.margin = '';
-      lifted = false;
-      requestAnimationFrame(() => {
-        lift();
-        startTickIfNeeded();
-      });
-    }, 120);
-  });
-})();
+}
 
 // ====== INLINE TRACE ZONE (Draw-a-D captcha) ======
-// Identical to the parent. After yielded → click → TRYING →
-// showTraceZone(): the trace zone opens with a dashed D template,
-// user drags a D, fail surfaces "try again, slow hands.", success
-// surfaces the SOLD OUT punchline.
 
 const traceZone   = document.getElementById('trace-zone');
 const traceCanvas = document.getElementById('trace-canvas');
