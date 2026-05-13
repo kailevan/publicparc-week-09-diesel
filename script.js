@@ -64,11 +64,6 @@ if (btn) {
   let yielded = false;
   let snapBackTimer = null;
   let lastLeapAt = 0;
-  // Set to true by the trap leap so the click event that follows the
-  // trap-leap mousedown is ignored (it would otherwise fire triggerProcessing
-  // as soon as yielded flips true — before the user gets a chance to see
-  // the button as "Add to bag" again).
-  let suppressNextBtnClick = false;
 
   let natural = { left: 0, top: 0, width: 0, height: 0 };
 
@@ -196,17 +191,30 @@ if (btn) {
     if (attempts >= TOTAL_LEAPS) {
       yielded = true;
       btn.classList.add('yielded');
-      // The 4th leap is the return-home trap. The button is back in
-      // its normal-looking "Add to bag" state — one more click is
-      // required to trigger TRYING + the trace zone reveal.
+      // The 4th leap is the return-home trap. The mousedown that
+      // just fired this leap will also produce a click event after
+      // mouseup. That click would either fire btn.click (if it lands
+      // on the moving button) or fire on a sibling element. Either
+      // way, if it later propagated to btn.click while yielded=true,
+      // triggerProcessing would run a frame after the leap and the
+      // user would never see the "Add to bag" beat.
       //
-      // Subtle gotcha: the click that JUST fired the trap leap is
-      // also about to dispatch its own `click` event after mouseup —
-      // and that click event would itself hit btn.click while
-      // yielded is now true, accidentally firing triggerProcessing
-      // a frame after the leap. We suppress that one trailing click
-      // so the user sees a real "Add to bag" beat first.
-      suppressNextBtnClick = true;
+      // Swallow that *one* trailing click globally with a capture-
+      // phase listener, then remove it. A 250ms safety timeout
+      // clears the listener if the click somehow never fires
+      // (otherwise a click that misses entirely would leave the
+      // listener live and swallow the user's first real click).
+      const swallow = (ev) => {
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+        cleanup();
+      };
+      const cleanup = () => {
+        document.removeEventListener('click', swallow, true);
+        clearTimeout(safety);
+      };
+      const safety = setTimeout(cleanup, 250);
+      document.addEventListener('click', swallow, true);
     }
   }
 
@@ -258,14 +266,6 @@ if (btn) {
   btn.addEventListener('click', (e) => {
     if (!yielded) {
       e.preventDefault();
-      return;
-    }
-    if (suppressNextBtnClick) {
-      // This click is the trailing event from the trap-leap mousedown
-      // itself — swallow it so triggerProcessing only fires on the
-      // *next, separate* click the user makes on the returned-home
-      // "Add to bag" button.
-      suppressNextBtnClick = false;
       return;
     }
     triggerProcessing();
