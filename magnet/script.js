@@ -45,7 +45,7 @@ if (captureMode) {
   // ===== tuning =====
   const AWARENESS_RADIUS = 380;   // cursor inside this radius from current button center triggers continuous evade
   const MAX_PX_PER_FRAME = 22;    // max displacement per RAF tick (when intensity = 1, ie cursor on the button)
-  const FATIGUE_MS       = 6000;  // ms from first proximity before the button yields and glides home
+  const FATIGUE_MS       = 3000;  // ms from first proximity before the button yields and glides home
   const HOME_GLIDE_MS    = 720;   // duration of the yield-time return-home animation
   const PADDING          = 28;    // viewport padding when clamping the button position
 
