@@ -37,9 +37,9 @@ if (captureMode) {
   if (!btn) return;
 
   // ===== tuning =====
-  const AWARENESS_RADIUS = 380;   // cursor inside this radius starts the fade — starts vanishing from further away
-  const FADED_OPACITY    = 0;     // fully invisible when cursor is right on top of the button
-  const SMOOTH           = 0.18;  // per-frame lerp toward target opacity (higher = snappier)
+  const AWARENESS_RADIUS  = 380;  // cursor inside this radius starts the fade (button is at opacity 1 right at the edge)
+  const FULL_FADE_RADIUS  = 220;  // cursor inside this radius → button is FULLY invisible (no longer requires cursor right on top)
+  const SMOOTH            = 0.18; // per-frame lerp toward target opacity (higher = snappier)
 
   // ===== state =====
   let cursor = { x: -1e6, y: -1e6 };
@@ -55,9 +55,12 @@ if (captureMode) {
     const dist = Math.hypot(dx, dy);
 
     let targetOpacity = 1;
-    if (dist < AWARENESS_RADIUS) {
-      const proximity = 1 - (dist / AWARENESS_RADIUS);
-      targetOpacity = 1 - (1 - FADED_OPACITY) * proximity;
+    if (dist <= FULL_FADE_RADIUS) {
+      // Inside the inner ring — fully invisible.
+      targetOpacity = 0;
+    } else if (dist < AWARENESS_RADIUS) {
+      // Between the rings — linear ramp from 0 (inner edge) to 1 (outer edge).
+      targetOpacity = (dist - FULL_FADE_RADIUS) / (AWARENESS_RADIUS - FULL_FADE_RADIUS);
     }
 
     // Lerp current opacity toward target (gives a smooth in/out fade).
