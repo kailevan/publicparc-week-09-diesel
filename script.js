@@ -64,6 +64,11 @@ if (btn) {
   let yielded = false;
   let snapBackTimer = null;
   let lastLeapAt = 0;
+  // Set to true by the trap leap so the click event that follows the
+  // trap-leap mousedown is ignored (it would otherwise fire triggerProcessing
+  // as soon as yielded flips true — before the user gets a chance to see
+  // the button as "Add to bag" again).
+  let suppressNextBtnClick = false;
 
   let natural = { left: 0, top: 0, width: 0, height: 0 };
 
@@ -191,10 +196,17 @@ if (btn) {
     if (attempts >= TOTAL_LEAPS) {
       yielded = true;
       btn.classList.add('yielded');
-      // Auto-advance: the 4th leap is the return-home trap. As soon as
-      // the button settles back, slip into the "TRYING…" state and open
-      // the trace zone. No extra user click required.
-      setTimeout(triggerProcessing, 850);
+      // The 4th leap is the return-home trap. The button is back in
+      // its normal-looking "Add to bag" state — one more click is
+      // required to trigger TRYING + the trace zone reveal.
+      //
+      // Subtle gotcha: the click that JUST fired the trap leap is
+      // also about to dispatch its own `click` event after mouseup —
+      // and that click event would itself hit btn.click while
+      // yielded is now true, accidentally firing triggerProcessing
+      // a frame after the leap. We suppress that one trailing click
+      // so the user sees a real "Add to bag" beat first.
+      suppressNextBtnClick = true;
     }
   }
 
@@ -248,8 +260,14 @@ if (btn) {
       e.preventDefault();
       return;
     }
-    // Same path as the auto-advance (covered if user clicks within the
-    // 850ms before triggerProcessing fires by itself).
+    if (suppressNextBtnClick) {
+      // This click is the trailing event from the trap-leap mousedown
+      // itself — swallow it so triggerProcessing only fires on the
+      // *next, separate* click the user makes on the returned-home
+      // "Add to bag" button.
+      suppressNextBtnClick = false;
+      return;
+    }
     triggerProcessing();
   });
 
