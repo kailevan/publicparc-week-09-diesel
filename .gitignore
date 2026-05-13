@@ -1,2 +1,10 @@
 .DS_Store
 *.log
+
+# Hermès-era leftovers — not referenced by the Diesel prototype.
+/assets/Dust*.mp4
+/assets/images/
+/assets/assets/
+
+# Old Diesel v1 attempt that got superseded.
+/diesel/
