@@ -61,6 +61,14 @@ if (captureMode) {
     if (lifted) return;
     const r = btn.getBoundingClientRect();
     natural = { left: r.left, top: r.top, width: r.width, height: r.height };
+    // Reparent to <body> so the button escapes the stacking context
+    // created by .product-card (z-index: 5). Without this the lifted
+    // button is "topmost within the card's context" but the card
+    // itself sits below the .site-header (z-index: 30), so the
+    // button visibly slides under the top nav as it travels around.
+    // Attached to body, the button shares the root stacking context
+    // and its z-index actually means what it says.
+    document.body.appendChild(btn);
     btn.style.position = 'fixed';
     btn.style.left   = r.left   + 'px';
     btn.style.top    = r.top    + 'px';
@@ -68,11 +76,8 @@ if (captureMode) {
     btn.style.height = r.height + 'px';
     btn.style.margin = '0';
     btn.style.willChange = 'transform';
-    // Keep the button on top of every page element (header, sticky
-    // nav, product imagery) so it never visually slides behind them
-    // as it travels around the viewport. One below the synthetic
-    // capture cursor (z-index 999999) so the cursor still renders
-    // on top in screen recordings.
+    // One below the synthetic capture cursor (z-index 999999) so the
+    // cursor still renders on top of the button in screen recordings.
     btn.style.zIndex = '999998';
     pos = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     lifted = true;
