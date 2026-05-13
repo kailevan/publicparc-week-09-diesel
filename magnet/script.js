@@ -1,137 +1,136 @@
-// magnet/script.js — threshold-flee evade variant.
+// magnet/script.js — "fish in a tank" continuous-response evade variant.
 //
-// Different evade mechanic from the parent (which leaps on click):
+// The Add to bag button has always-on awareness of the cursor within a
+// 200px radius. Every animation frame it drifts a little further away
+// from the cursor; how big the drift is scales linearly with how far
+// inside the awareness zone the cursor sits (cursor at the edge =
+// barely any push; cursor on top of the button = max push per frame).
+// Cursor speed itself doesn't matter — only distance. The button
+// keeps wherever it ends up (no spring back to home while evading).
 //
-//   The Add to bag button glides smoothly to a far spot in the viewport
-//   as soon as the cursor crosses into a proximity threshold. It can
-//   land anywhere in the viewport — opposite corner, edge, wherever
-//   the math picks as "farthest". Cursor approaches again from outside
-//   the (larger) hysteresis ring → button flees to a new spot. After
-//   4 approach episodes the button gives up: snaps back home, becomes
-//   clickable, and the next click opens the same TRYING → Draw a D →
-//   SOLD OUT flow as the leap variant.
-//
-// (Calling it "magnet" internally for continuity with the URL — the
-// behavior is more "skittish": runs away when the cursor gets close,
-// goes still otherwise.)
+// After ~6 seconds from the first time the cursor entered the
+// awareness zone, the button gets tired: it glides smoothly home,
+// becomes clickable, and the next click opens the same TRYING →
+// Draw a D captcha → SOLD OUT flow as the parent prototype.
 
 (function () {
   const btn = document.getElementById('add-to-cart');
   if (!btn) return;
 
   // ===== tuning =====
-  const THRESHOLD_IN     = 180;   // cursor crosses INTO the flee zone at this radius from button center
-  const THRESHOLD_OUT    = 280;   // hysteresis ring: cursor must clear this radius for the next entry to count fresh
-  const FLEE_DURATION    = 420;   // ms for the smooth glide to the new spot
-  const MIN_FLEE_DIST    = 380;   // the flee target must be at least this far from cursor
-  const TOTAL_APPROACHES = 4;     // approach episodes before the button yields
-  const PADDING          = 28;    // viewport edge padding for the flee target
-  const SETTLE_HOME_MS   = 560;   // ms for the final snap-home glide on yield
+  const AWARENESS_RADIUS = 200;   // cursor inside this radius from current button center triggers continuous evade
+  const MAX_PX_PER_FRAME = 9;     // max displacement per RAF tick (when intensity = 1, ie cursor on the button)
+  const FATIGUE_MS       = 6000;  // ms from first proximity before the button yields and glides home
+  const HOME_GLIDE_MS    = 720;   // duration of the yield-time return-home animation
+  const PADDING          = 28;    // viewport padding when clamping the button position
 
   // ===== state =====
-  let approaches = 0;
-  let yielded    = false;
-  let inZone     = false;
-  let lifted     = false;
-  let natural    = null;
-  // Where the button center currently sits in viewport coords. Updated
-  // when the button flees so the threshold check tracks the button, not
-  // its original home position.
-  let currentCx  = 0;
-  let currentCy  = 0;
+  // Cursor parked far off-screen so the page-load mousemove (if any)
+  // doesn't accidentally count as proximity before the user actually
+  // moves.
+  let cursor   = { x: -1e6, y: -1e6 };
+  let pos      = null;            // current button center in viewport coords
+  let natural  = null;            // rect captured on first lift (home position)
+  let lifted   = false;
+  let yielded  = false;
+  let firstProximity = false;     // becomes true the first time cursor enters the awareness zone
+  let fatigueStartedAt = 0;
+  let rafId    = null;
 
   function lift() {
     if (lifted) return;
     const r = btn.getBoundingClientRect();
     natural = { left: r.left, top: r.top, width: r.width, height: r.height };
     btn.style.position = 'fixed';
-    btn.style.left   = r.left  + 'px';
-    btn.style.top    = r.top   + 'px';
-    btn.style.width  = r.width + 'px';
-    btn.style.height = r.height+ 'px';
+    btn.style.left   = r.left   + 'px';
+    btn.style.top    = r.top    + 'px';
+    btn.style.width  = r.width  + 'px';
+    btn.style.height = r.height + 'px';
     btn.style.margin = '0';
-    currentCx = r.left + r.width  / 2;
-    currentCy = r.top  + r.height / 2;
+    btn.style.willChange = 'transform';
+    pos = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     lifted = true;
   }
 
-  // Pick a viewport position whose distance from (cursorX, cursorY) is
-  // at least MIN_FLEE_DIST. Samples a handful of random candidates and
-  // returns the farthest. Bias toward the opposite half of the viewport
-  // by sampling there preferentially.
-  function pickFleeTarget(cursorX, cursorY) {
-    const w = natural.width;
-    const h = natural.height;
-    const minCx = PADDING + w / 2;
-    const maxCx = window.innerWidth  - PADDING - w / 2;
-    const minCy = PADDING + h / 2;
-    const maxCy = window.innerHeight - PADDING - h / 2;
-
-    let best = null;
-    let bestDist = 0;
-    for (let i = 0; i < 30; i++) {
-      const cx = minCx + Math.random() * (maxCx - minCx);
-      const cy = minCy + Math.random() * (maxCy - minCy);
-      const d = Math.hypot(cx - cursorX, cy - cursorY);
-      if (d > bestDist) {
-        bestDist = d;
-        best = { cx, cy };
-      }
-    }
-    if (!best || bestDist < MIN_FLEE_DIST) {
-      // Fallback: opposite corner.
-      best = {
-        cx: cursorX < window.innerWidth / 2 ? maxCx : minCx,
-        cy: cursorY < window.innerHeight / 2 ? maxCy : minCy,
-      };
-    }
-    return best;
+  function naturalCenter() {
+    return { x: natural.left + natural.width / 2, y: natural.top + natural.height / 2 };
   }
 
-  function fleeTo(targetCx, targetCy) {
-    const offsetX = targetCx - (natural.left + natural.width  / 2);
-    const offsetY = targetCy - (natural.top  + natural.height / 2);
-    btn.style.transition = `transform ${FLEE_DURATION}ms cubic-bezier(0.33, 1, 0.68, 1)`;
-    btn.style.transform  = `translate(${offsetX}px, ${offsetY}px)`;
-    currentCx = targetCx;
-    currentCy = targetCy;
+  function clampPosition() {
+    const halfW = natural.width  / 2;
+    const halfH = natural.height / 2;
+    pos.x = Math.max(PADDING + halfW, Math.min(window.innerWidth  - PADDING - halfW, pos.x));
+    pos.y = Math.max(PADDING + halfH, Math.min(window.innerHeight - PADDING - halfH, pos.y));
   }
 
-  function snapHome() {
-    btn.style.transition = `transform ${SETTLE_HOME_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`;
+  function applyTransform() {
+    const nc = naturalCenter();
+    btn.style.transform = `translate(${pos.x - nc.x}px, ${pos.y - nc.y}px)`;
+  }
+
+  function yieldNow() {
+    yielded = true;
+    btn.classList.add('yielded');
+    btn.style.transition = `transform ${HOME_GLIDE_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`;
     btn.style.transform  = 'translate(0, 0)';
-    currentCx = natural.left + natural.width  / 2;
-    currentCy = natural.top  + natural.height / 2;
+    // After the glide, pos reflects home (so any late ticks see it
+    // already at the natural center).
+    setTimeout(() => { pos = naturalCenter(); }, HOME_GLIDE_MS);
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
   }
 
-  function onMove(e) {
-    if (yielded) return;
-    if (!lifted) lift();
+  function tick() {
+    if (yielded || !pos) { rafId = null; return; }
 
-    const dx = currentCx - e.clientX;
-    const dy = currentCy - e.clientY;
+    // Fatigue check first so the very last tick can yield before
+    // dispatching another push.
+    if (firstProximity && Date.now() - fatigueStartedAt >= FATIGUE_MS) {
+      yieldNow();
+      return;
+    }
+
+    const dx = pos.x - cursor.x;
+    const dy = pos.y - cursor.y;
     const dist = Math.hypot(dx, dy);
 
-    if (dist < THRESHOLD_IN) {
-      if (inZone) return;
-      inZone = true;
-      approaches++;
-      if (approaches >= TOTAL_APPROACHES) {
-        yielded = true;
-        btn.classList.add('yielded');
-        snapHome();
-        return;
+    if (dist < AWARENESS_RADIUS) {
+      if (!firstProximity) {
+        firstProximity = true;
+        fatigueStartedAt = Date.now();
       }
-      const target = pickFleeTarget(e.clientX, e.clientY);
-      fleeTo(target.cx, target.cy);
-    } else if (dist > THRESHOLD_OUT) {
-      inZone = false;
+      // Linear scaling: cursor at edge of zone → ~0 push; cursor right
+      // on the button → MAX_PX_PER_FRAME push (per RAF tick).
+      const intensity = 1 - (dist / AWARENESS_RADIUS);
+      const unitX = dx / Math.max(dist, 1);
+      const unitY = dy / Math.max(dist, 1);
+      pos.x += unitX * intensity * MAX_PX_PER_FRAME;
+      pos.y += unitY * intensity * MAX_PX_PER_FRAME;
+      clampPosition();
+      applyTransform();
+    }
+    // else: button stays where it last was — no transform write.
+
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function startTickIfNeeded() {
+    if (rafId == null && !yielded) {
+      rafId = requestAnimationFrame(tick);
     }
   }
-  document.addEventListener('mousemove', onMove);
 
-  // Block clicks on the button until it yields — so a fast cursor
-  // can't accidentally land a click during the flee glide.
+  document.addEventListener('mousemove', (e) => {
+    if (yielded) return;
+    if (!lifted) lift();
+    cursor.x = e.clientX;
+    cursor.y = e.clientY;
+    startTickIfNeeded();
+  });
+
+  // Block clicks on the button while evading so a cursor that briefly
+  // overlaps the button (before the next RAF tick moves it away)
+  // doesn't accidentally fire triggerProcessing.
   btn.addEventListener('mousedown', (e) => {
     if (!yielded) e.preventDefault();
   });
@@ -140,26 +139,25 @@
     triggerProcessing();
   });
 
-  // Recompute "natural" on resize so the flee zone tracks the new
-  // layout. Reset offset to 0 during the recompute.
+  // Resize: re-grab natural rect on next animation frame so the
+  // awareness zone stays aligned with the new layout.
   let resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
+      if (!lifted || yielded) return;
       btn.style.transition = 'none';
       btn.style.transform  = 'translate(0, 0)';
-      const wasLifted = lifted;
-      if (wasLifted) {
-        btn.style.position = '';
-        btn.style.left = '';
-        btn.style.top = '';
-        btn.style.width = '';
-        btn.style.height = '';
-        btn.style.margin = '';
-        lifted = false;
-      }
+      btn.style.position = '';
+      btn.style.left = '';
+      btn.style.top = '';
+      btn.style.width = '';
+      btn.style.height = '';
+      btn.style.margin = '';
+      lifted = false;
       requestAnimationFrame(() => {
-        if (wasLifted) lift();
+        lift();
+        startTickIfNeeded();
       });
     }, 120);
   });
@@ -175,11 +173,10 @@
 })();
 
 // ====== INLINE TRACE ZONE (Draw-a-D captcha) ======
-// Identical logic to the parent prototype. After yielded → click →
-// TRYING → showTraceZone(): the trace zone opens with a dashed D
-// template. The user must drag in a D shape; bad attempts surface
-// "try again, slow hands."; a successful D triggers the SOLD OUT
-// punchline.
+// Identical to the parent. After yielded → click → TRYING →
+// showTraceZone(): the trace zone opens with a dashed D template,
+// user drags a D, fail surfaces "try again, slow hands.", success
+// surfaces the SOLD OUT punchline.
 
 const traceZone   = document.getElementById('trace-zone');
 const traceCanvas = document.getElementById('trace-canvas');
