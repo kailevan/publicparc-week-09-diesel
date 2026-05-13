@@ -68,6 +68,12 @@ if (captureMode) {
     btn.style.height = r.height + 'px';
     btn.style.margin = '0';
     btn.style.willChange = 'transform';
+    // Keep the button on top of every page element (header, sticky
+    // nav, product imagery) so it never visually slides behind them
+    // as it travels around the viewport. One below the synthetic
+    // capture cursor (z-index 999999) so the cursor still renders
+    // on top in screen recordings.
+    btn.style.zIndex = '999998';
     pos = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     lifted = true;
   }
